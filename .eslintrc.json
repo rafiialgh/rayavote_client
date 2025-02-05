@@ -32,6 +32,7 @@
         "@typescript-eslint/space-before-blocks": "off",
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/no-unused-vars": "off",
-        "react/no-unknown-property": "off"
+        "react/no-unknown-property": "off",
+        "@typescript-eslint/no-explicit-any": "off"
     }
 }
