@@ -113,7 +113,7 @@ export default function Voting() {
   useEffect(() => {
     getCandidateList();
     getUserDetail()
-  }, [getCandidateList]);
+  }, [getCandidateList, getUserDetail]);
 
   return (
     <>
