@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "types/**/*.d.ts", ".next/types/**/*.ts", "app/login/company/page.tsx", "app/login/voter/page.tsx", "app/register/company/page.tsx", "app/election/create_election/CreateElection.tsx"],
   "exclude": ["node_modules"]
 }
