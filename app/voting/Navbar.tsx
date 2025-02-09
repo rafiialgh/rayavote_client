@@ -1,8 +1,19 @@
 import React from 'react';
 import logo from '@/public/img/logo.svg';
 import Image from 'next/image';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 function Navbar(props: any) {
+  const router = useRouter();
+
+  const logout = () => {
+    Cookies.remove('address');
+    Cookies.remove('emailVoter');
+    Cookies.remove('tokenVoter');
+
+    router.push('/login/voter');
+  };
 
   return (
     <nav
@@ -19,11 +30,19 @@ function Navbar(props: any) {
           {/* Logo */}
           <Image src={logo} width={40} height={50} alt='logo' />
 
-          <div>
+          <div className='flex'>
             <div className='py-1 px-7 rounded-lg bg-white'>
               <p>{props.user}</p>
             </div>
+          {/* Logout Button */}
+          <button
+              onClick={logout}
+              className='text-white py-1 px-7 rounded-lg bg-red-600 ml-4'
+            >
+              Logout
+            </button>
           </div>
+          
         </div>
       </div>
     </nav>

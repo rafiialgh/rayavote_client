@@ -32,6 +32,7 @@ export default function Voting() {
 
   const [users, setUsers] = useState<any>()
   const [candidates, setCandidates] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(false)
 
   const getUserDetail = useCallback(async () => {
     const email = Cookies.get('emailVoter');
@@ -74,6 +75,7 @@ export default function Voting() {
   }, []);
 
   const handleVote = async (candidateIndex: number) => {
+    setIsLoading(true)
     await window.ethereum.request({ method: 'eth_requestAccounts' });
     const address = Cookies.get('address');
     const Election = getElectionContract(address);
@@ -88,6 +90,7 @@ export default function Voting() {
       const email = Cookies.get('emailVoter')
       const tx = await Election.vote(candidateIndex, email);
       await tx.wait(); 
+      setIsLoading(false)
       console.log(tx)// Tunggu hingga transaksi selesai
 
       toast.success('Your vote has been successfully submitted!');
@@ -106,6 +109,7 @@ export default function Voting() {
 
     } catch (error) {
       console.error(error);
+      setIsLoading(false)
       toast.error('Failed to cast your vote.');
     }
   };
@@ -118,6 +122,13 @@ export default function Voting() {
   return (
     <>
       <Navbar user={users}/>
+      {isLoading && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+          <div className='bg-white p-5 rounded-md shadow-lg'>
+            <p className='text-lg font-semibold'>Voting...</p>
+          </div>
+        </div>
+      )}
       <div className='flex w-full justify-center items-center'>
         <div className='p-10 bg-[#D9D9D9] rounded-lg border border-gray-400 grid grid-cols-2 gap-14 m-10'>
           {candidates.map((candidate: any, index: any) => {

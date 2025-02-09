@@ -53,7 +53,8 @@ function AddCandidateForm() {
     try {
       setIsLoading(true)
       const response = await addImageCandidate(data);
-      console.log(response.avatar);
+      console.log(response);
+      console.log(`${response.display_name}.${response.format}`);
 
       if (response.error) {
         toast.error(response.message);
@@ -69,10 +70,12 @@ function AddCandidateForm() {
             return;
           }
 
+          const image = `${response.display_name}.${response.format}`
+
           const tx = await Election.addCandidate(
             formDatas.name,
             formDatas.description,
-            response.avatar,
+            image,
             formDatas.email
           );
 
@@ -98,6 +101,7 @@ function AddCandidateForm() {
         } catch (error) {
           console.error(error);
           toast.error('Terjadi kesalahan saat add candidate.');
+          setIsLoading(false)
         }
         setFormDatas({
           name: '',
@@ -109,6 +113,7 @@ function AddCandidateForm() {
       }
     } catch (error) {
       toast.error('Terjadi kesalahan pada server!');
+      setIsLoading(false)
     }
   };
 
