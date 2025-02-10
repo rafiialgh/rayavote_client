@@ -82,7 +82,7 @@ export default function Voter() {
 
             <div className='w-full h-fit bg-[#D9D9D9] p-3 rounded-lg'>
               <div className='w-full h-full bg-white rounded-sm px-5 py-10 flex flex-col'>
-                <label htmlFor='nim'>NIM</label>
+                <label htmlFor='email'>Email</label>
                 <input
                   type='email'
                   placeholder='Enter your email'
