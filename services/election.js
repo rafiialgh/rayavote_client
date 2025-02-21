@@ -34,8 +34,8 @@ export async function setElection(data) {
 export async function getElection(address) {
   const URL = 'election/getElection';
 
-  const tokenCookies = Cookies.get('token');
-  const jwtToken = atob(tokenCookies);
+//  const tokenCookies = Cookies.get('token');
+//   const jwtToken = atob(tokenCookies); 
 
   const response = await axios
     .get(`${ROOT_API}/${URL}/${address}`, { headers: { Authorization: jwtToken } })
