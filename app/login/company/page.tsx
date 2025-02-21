@@ -121,7 +121,7 @@ export default function Company() {
           <div className='p-10 flex flex-col'>
             <div className='flex items-center mb-10'>
               <h1 className='text-5xl mr-3'>
-                Company <br /> Login
+              Organization <br /> Login
               </h1>
               <img src='/img/vector2.png' alt='' className='h-[82px]' />
             </div>

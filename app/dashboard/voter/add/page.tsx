@@ -7,8 +7,8 @@ import { getElectionContract } from '@/utils/contract';
 
 function AddCandidateForm() {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    password: '',
   });
   const [electionDetail, setElectionDetail] = useState({
         name: '',
@@ -45,9 +45,9 @@ function AddCandidateForm() {
       return;
     }
 
-    const { email, password } = formData;
+    const { name, email } = formData;
 
-    if (!email || !password) {
+    if (!name || !email) {
       toast.warning('Pastikan semua field bertanda (*) sudah diisi.');
       return;
     }
@@ -77,8 +77,8 @@ function AddCandidateForm() {
     // }
 
     const response = await addVoter({
+      name,
       email,
-      password,
       electionAddress: address,
       electionName: electionDetail.name,
       electionDescription: electionDetail.description
@@ -89,7 +89,7 @@ function AddCandidateForm() {
       console.log(response)
       toast.error(response.message);
     } else {
-      setFormData({ email: '', password: '' });
+      setFormData({ name: '', email: '' });
       toast.success(response.message);
     }
   
@@ -110,26 +110,28 @@ function AddCandidateForm() {
         <h2 className='text-2xl font-bold mb-4'>Add Voter</h2>
 
         <div className='mb-4'>
-          <label className='block text-gray-700 font-medium mb-2'>Email *</label>
+          <label className='block text-gray-700 font-medium mb-2'>Name *</label>
+          <input
+            type='text'
+            name='name'
+            value={formData.name}
+            onChange={handleChange}
+            className='w-full px-3 py-2 border rounded-lg font-sans'
+            placeholder='Contoh: Rafii Alghafary'
+          />
+        </div>
+
+        <div className='mb-4'>
+          <label className='block text-gray-700 font-medium mb-2'>
+            Email *
+          </label>
           <input
             type='email'
             name='email'
             value={formData.email}
             onChange={handleChange}
             className='w-full px-3 py-2 border rounded-lg font-sans'
-          />
-        </div>
-
-        <div className='mb-4'>
-          <label className='block text-gray-700 font-medium mb-2'>
-            Password *
-          </label>
-          <input
-            type='text'
-            name='password'
-            value={formData.password}
-            onChange={handleChange}
-            className='w-full px-3 py-2 border rounded-lg font-sans'
+            placeholder='Contoh: vote@gmail.com'
           />
         </div>
 

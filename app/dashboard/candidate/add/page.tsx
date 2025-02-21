@@ -144,6 +144,7 @@ function AddCandidateForm() {
               value={formDatas.name}
               onChange={handleChange}
               className='w-full px-3 py-2 border rounded-lg font-sans'
+              placeholder='Contoh: Rafii Alghafary'
             />
           </div>
 
@@ -157,6 +158,7 @@ function AddCandidateForm() {
               value={formDatas.email}
               onChange={handleChange}
               className='w-full px-3 py-2 border rounded-lg font-sans'
+              placeholder='Contoh: vote@gmail.com'
             />
           </div>
 
@@ -169,6 +171,7 @@ function AddCandidateForm() {
               value={formDatas.description}
               onChange={handleChange}
               className='w-full px-3 py-2 border rounded-lg font-sans'
+              placeholder='Contoh: Berpengalaman sebagai ketua organisasi...'
             />
           </div>
 

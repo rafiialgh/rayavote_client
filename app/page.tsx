@@ -69,7 +69,7 @@ export default function Home() {
                   href='/login/company'
                   className='w-full py-2 px-3 rounded-lg border bg-[#FF8D1D] flex items-center justify-between border-black hover:bg-[#FF9E3D] transition'
                 >
-                  Company{' '}
+                  Organization{' '}
                   <span className='ml-2'>
                     <LuArrowUpRight />
                   </span>

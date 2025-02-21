@@ -31,14 +31,14 @@ export async function setElection(data) {
   return res;
 }
 
-export async function getElection() {
+export async function getElection(address) {
   const URL = 'election/getElection';
 
   const tokenCookies = Cookies.get('token');
   const jwtToken = atob(tokenCookies);
 
   const response = await axios
-    .get(`${ROOT_API}/${URL}`, { headers: { Authorization: jwtToken } })
+    .get(`${ROOT_API}/${URL}/${address}`, { headers: { Authorization: jwtToken } })
     .catch((err) => err.response);
 
   if (response.status > 300) {

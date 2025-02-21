@@ -11,7 +11,9 @@ import Cookies from 'js-cookie';
 export default function CreateElection() {
   const [electionName, setElectionName] = useState('');
   const [electionDesc, setElectionDesc] = useState('');
-  const [isLoading, setIsLoading] = useState(false)
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -21,10 +23,10 @@ export default function CreateElection() {
       electionDesc,
     };
 
-    if (!data.electionName || !data.electionDesc) {
-      toast.error('Election name dan description harus diisi!');
+    if (!data.electionName || !data.electionDesc || !startTime || !endTime) {
+      toast.error('Semua field harus diisi!');
       return;
-    } 
+    }
     // else {
     //   const response = await setElection(data);
     //   console.log(response);
@@ -34,12 +36,12 @@ export default function CreateElection() {
     // }
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const email = Cookies.get('company_email');
       await window.ethereum.request({ method: 'eth_requestAccounts' });
 
       const electionFact = getElectionFactContract();
-      console.log(electionFact)
+      console.log(electionFact);
       if (!electionFact) {
         toast.error('Failed to get election contract.');
         return;
@@ -48,35 +50,52 @@ export default function CreateElection() {
       const tx = await electionFact.createElection(
         email,
         electionName,
-        electionDesc,
+        electionDesc
       );
 
       console.log(`Loading - ${tx.hash}`);
       await tx.wait();
 
       if (tx) {
-        const [deployedAddress, elName, elDesc] = await electionFact.getDeployedElection(email)
-        Cookies.set('address', deployedAddress)
-        console.log(deployedAddress)
-        console.log(elName)
-        console.log(elDesc)
-        
+        const [deployedAddress, elName, elDesc] =
+          await electionFact.getDeployedElection(email);
+        Cookies.set('address', deployedAddress);
+        console.log(deployedAddress);
+        console.log(elName);
+        console.log(elDesc);
+
+        // const localStartTime = new Date(startTime);
+        // const utcStartTime = new Date(
+        //   localStartTime.getTime() - localStartTime.getTimezoneOffset() * 60000
+        // );
+        // const isoStartTime = utcStartTime.toISOString();
+
+        // const localEndTime = new Date(endTime);
+        // const utcEndTime = new Date(
+        //   localEndTime.getTime() - localEndTime.getTimezoneOffset() * 60000
+        // );
+        // const isoEndTime = utcEndTime.toISOString();
+
+        const response = await setElection({
+          electionAddress: deployedAddress,
+          startTime,
+          endTime,
+        });
       }
 
       console.log(`Success - ${tx.hash}`);
       toast.success('Election berhasil dibuat!');
-      setIsLoading(false)
+      setIsLoading(false);
       router.push(`/dashboard`);
     } catch (error) {
       console.error(error);
       toast.error('Terjadi kesalahan saat membuat election.');
     }
-    
   };
 
   return (
     <>
-    {isLoading && (
+      {isLoading && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white p-5 rounded-md shadow-lg'>
             <p className='text-lg font-semibold'>Creating Election...</p>
@@ -132,6 +151,22 @@ export default function CreateElection() {
                   onChange={(event) => setElectionDesc(event.target.value)}
                   rows={4}
                   cols={50}
+                />
+
+                <label>Start Time</label>
+                <input
+                  type='datetime-local'
+                  className='border p-2 mb-3 font-sans'
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+
+                <label>End Time</label>
+                <input
+                  type='datetime-local'
+                  className='border p-2 mb-5 font-sans'
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
                 />
 
                 <div className=''>

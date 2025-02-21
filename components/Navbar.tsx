@@ -85,7 +85,7 @@ export const Navbar = () => {
                 </span>
               </li>
               <li className='py-1 px-4 rounded-lg bg-[#FF8D1D] text-[#222222] flex items-center'>
-                Company{' '}
+              Organization{' '}
                 <span className='ml-2'>
                   <LuArrowUpRight />
                 </span>

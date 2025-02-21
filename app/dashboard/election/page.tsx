@@ -8,11 +8,38 @@ import { getElectionContract } from '@/utils/contract';
 import { sendResult } from '@/services/result';
 
 export default function Election() {
-  const phases = [
-    { value: 'init', label: 'Initialization' },
-    { value: 'ongoing', label: 'Ongoing' },
-    { value: 'completed', label: 'Completed' },
-  ];
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [status, setStatus] = useState('');
+
+  const formatDateTime = (isoString: any) => {
+    console.log(isoString);
+    if (!isoString) return '';
+    const date = new Date(isoString); // Mengubah ISO string menjadi objek Date
+    console.log(date.toLocaleString());
+    console.log(new Date(date.getTime() - date.getTimezoneOffset() * 60000));
+    return date.toISOString().slice(0, 16);
+  };
+
+  const dateFormat = (date: any) => {
+    const formattedDate = new Date(date).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return formattedDate;
+  };
+
+  const handleStartTimeChange = (e: any) => {
+    setStartTime(e.target.value);
+  };
+
+  const handleEndTimeChange = (e: any) => {
+    setEndTime(e.target.value);
+  };
 
   const [formData, setFormData] = useState({
     _id: '',
@@ -68,6 +95,11 @@ export default function Election() {
     if (winnerData) {
       setCandidate(JSON.parse(winnerData));
     }
+
+    const response = await getElection(address);
+    setStartTime(response.data.startTime);
+    setEndTime(response.data.endTime);
+    setStatus(response.data.currentPhase);
   }, []);
 
   useEffect(() => {
@@ -116,7 +148,7 @@ export default function Election() {
   };
 
   const handleSendEmail = async () => {
-    setEmailLoading(true)
+    setEmailLoading(true);
     const address = Cookies.get('address');
 
     if (!candidate || !candidate.name) {
@@ -130,14 +162,59 @@ export default function Election() {
       electionName: electionDetail.name,
       winnerCandidate: candidate.name,
     });
-    console.log("🚀 ~ handleSendEmail ~ response:", response)
+    console.log('🚀 ~ handleSendEmail ~ response:', response);
 
     if (response.error) {
       toast.error(response.message);
     } else {
-      toast.success(`${'totalEmails' in response ? response.totalEmails : ''} ${response.message}`);
+      toast.success(
+        `${'totalEmails' in response ? response.totalEmails : ''} ${
+          response.message
+        }`
+      );
     }
-    setEmailLoading(false)
+    setEmailLoading(false);
+  };
+
+  const handleTimeChange = async (e: any) => {
+    try {
+      if (!startTime || !endTime) {
+        toast.error('Start time and end time cannot be empty.');
+        return;
+      }
+
+      const localStartTime = new Date(startTime);
+      const localEndTime = new Date(endTime);
+
+      console.log(localStartTime);
+      console.log(localEndTime);
+
+      const isoStartTime = new Date(localStartTime.toISOString());
+      const isoEndTime = new Date(localEndTime.toISOString());
+
+      console.log(isoStartTime);
+      console.log(isoEndTime);
+
+      console.log(isoStartTime.toISOString());
+      console.log(isoEndTime.toISOString());
+
+      const address = Cookies.get('address');
+      const response = await editElection(address, {
+        startTime: isoStartTime.toISOString(),
+        endTime: isoEndTime.toISOString(),
+      });
+      console.log(response);
+      const checkStatus = await getElection(address);
+      setStatus(checkStatus.data.currentPhase);
+
+      if (response.error) {
+        toast.error(response.message);
+      } else {
+        toast.success(response.message);
+      }
+    } catch (error) {
+      toast.error('Failed to update election time.');
+    }
   };
 
   // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -178,6 +255,7 @@ export default function Election() {
                   value={electionDetail.name}
                   onChange={handleChange}
                   className='w-full px-3 py-2 border rounded-lg font-sans flex-1'
+                  disabled
                 />
               </div>
               <div className='mb-4 flex gap-20 items-center'>
@@ -191,8 +269,62 @@ export default function Election() {
                   className='w-full px-3 py-2 border rounded-lg font-sans flex-1'
                   rows={4}
                   cols={50}
+                  disabled
                 />
               </div>
+              <div className='mb-4 flex gap-20 items-center'>
+                <label className='block flex-2 text-gray-700 font-medium mb-2 w-32'>
+                  Election Phase
+                </label>
+                <input
+                  name='status'
+                  value={status}
+                  onChange={handleChange}
+                  className='w-full px-3 py-2 border rounded-lg font-sans flex-1'
+                  disabled
+                />
+              </div>
+              <div className='mb-4 flex gap-20 items-center'>
+                <label className='block flex-2 text-gray-700 font-medium mb-2 w-32'>
+                  Time
+                </label>
+                <input
+                  name='time'
+                  value={`${dateFormat(startTime)} - ${dateFormat(endTime)}`}
+                  className='w-fit px-3 py-2 border rounded-lg font-sans flex-1'
+                  disabled
+                />
+              </div>
+              <div className='mb-4 flex gap-20 items-center'>
+                <label className='block flex-2 text-gray-700 font-medium mb-2 w-32'>
+                  Start Time
+                </label>
+
+                <input
+                  type='datetime-local'
+                  className='border p-2 mb-3 font-sans'
+                  // value={startTime}
+                  onChange={handleStartTimeChange}
+                />
+              </div>
+              <div className='mb-5 flex gap-20 items-center'>
+                <label className='block flex-2 text-gray-700 font-medium mb-2 w-32'>
+                  End Time
+                </label>
+                <input
+                  type='datetime-local'
+                  className='border p-2 font-sans'
+                  // value={endTime}
+                  onChange={handleEndTimeChange}
+                />
+              </div>
+              <button
+                className='bg-green-500 text-white px-5 py-2 rounded-lg ml-[210px]'
+                onClick={handleTimeChange}
+              >
+                Set Time
+              </button>
+
               {/* <div className='mt-20 mb-10'>
                   <h1 className='text-xl'>Phase</h1>
                 </div>

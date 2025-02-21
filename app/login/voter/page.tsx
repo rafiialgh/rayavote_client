@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
 export default function Voter() {
+  const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,12 +19,11 @@ export default function Voter() {
 
   const onSubmit = async () => {
     const data = {
-      email,
-      password,
+      token,
     };
 
-    if (!data.email || !data.password) {
-      toast.error('Email dan password harus diisi!');
+    if (!data.token) {
+      toast.error('Token harus diisi!');
     } else {
       try {
         const response = await setSignInVoter(data);
@@ -82,15 +82,15 @@ export default function Voter() {
 
             <div className='w-full h-fit bg-[#D9D9D9] p-3 rounded-lg'>
               <div className='w-full h-full bg-white rounded-sm px-5 py-10 flex flex-col'>
-                <label htmlFor='email'>Email</label>
+                <label htmlFor='token'>Token</label>
                 <input
-                  type='email'
-                  placeholder='Enter your email'
+                  type='text'
+                  placeholder='Enter your token'
                   className='border border-black rounded-sm p-2 mb-5 font-sans'
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  value={token}
+                  onChange={(event) => setToken(event.target.value)}
                 />
-
+{/* 
                 <label htmlFor='password'>Password</label>
                 <input
                   type='password'
@@ -98,7 +98,7 @@ export default function Voter() {
                   className='border border-black rounded-sm p-2 mb-5 font-sans'
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                />
+                /> */}
 
                 <div className=''>
                   <button

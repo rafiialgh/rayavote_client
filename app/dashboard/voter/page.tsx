@@ -12,7 +12,7 @@ export default function Voter() {
   interface Voter {
     _id: string;
     email: string;
-    password: string;
+    name: string;
   }
 
   const [voters, setVoters] = useState<Voter[]>([]);
@@ -30,7 +30,7 @@ export default function Voter() {
         const votersData = response.data.map((voter: any) => ({
           _id: voter._id,
           email: voter.email,
-          password: voter.password,
+          name: voter.name,
         }));
         setVoters(votersData);
       } else {
@@ -70,7 +70,7 @@ export default function Voter() {
 
   const handleSave = async (updatedVoter: Voter) => {
       try {
-        const response = await editVoter(updatedVoter._id, {email: updatedVoter.email, password: updatedVoter.password, electionName: electionDetail.name, electionDescription: electionDetail.description});
+        const response = await editVoter(updatedVoter._id, {email: updatedVoter.email, name: updatedVoter.name, electionName: electionDetail.name, electionDescription: electionDetail.description});
         console.log(response)
         if (!response.error) {
           toast.success(response.message);
@@ -109,12 +109,12 @@ export default function Voter() {
               <tr>
                 <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
                   <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Email
+                    Name
                   </p>
                 </th>
                 <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
                   <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Password
+                    Email
                   </p>
                 </th>
                 <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
@@ -151,7 +151,7 @@ export default function Voter() {
 const EditModal = ({ voter, onClose, onSave }: any) => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    name: ''
   });
 
   useEffect(() => {
@@ -171,8 +171,8 @@ const EditModal = ({ voter, onClose, onSave }: any) => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    const { email, password } = formData;
-    if (!email || !password) {
+    const { email, name } = formData;
+    if (!email || !name) {
       toast.warning('Pastikan semua field bertanda (*) sudah diisi.');
       return;
     }
@@ -189,12 +189,12 @@ const EditModal = ({ voter, onClose, onSave }: any) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">
-              Email *
+              Name *
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg font-sans"
             />
@@ -202,12 +202,12 @@ const EditModal = ({ voter, onClose, onSave }: any) => {
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">
-              Password *
+              Email *
             </label>
             <input
-              type="text"
-              name="password"
-              value={formData.password}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-lg font-sans"
             />
