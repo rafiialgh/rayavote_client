@@ -38,7 +38,7 @@ export async function getElection(address) {
 //   const jwtToken = atob(tokenCookies); 
 
   const response = await axios
-    .get(`${ROOT_API}/${URL}/${address}`, { headers: { Authorization: jwtToken } })
+    .get(`${ROOT_API}/${URL}/${address}`)
     .catch((err) => err.response);
 
   if (response.status > 300) {
