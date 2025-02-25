@@ -76,10 +76,24 @@ export default function CreateElection() {
         // );
         // const isoEndTime = utcEndTime.toISOString();
 
+        if (!startTime || !endTime) {
+          toast.error('Start time and end time cannot be empty.');
+          return;
+        }
+
+        const localStartTime = new Date(startTime);
+        const localEndTime = new Date(endTime);
+
+        console.log(localStartTime);
+        console.log(localEndTime);
+
+        const isoStartTime = new Date(localStartTime.toISOString());
+        const isoEndTime = new Date(localEndTime.toISOString());
+
         const response = await setElection({
           electionAddress: deployedAddress,
-          startTime,
-          endTime,
+          startTime: isoStartTime.toISOString(),
+          endTime: isoEndTime.toISOString(),
         });
       }
 

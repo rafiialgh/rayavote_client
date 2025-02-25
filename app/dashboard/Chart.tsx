@@ -47,7 +47,7 @@ function Chart({ labels, data }: ChartProps) {
       datasets: [
         {
           label: 'Voters',
-          data: data, // Menggunakan data dari props
+          data: [7, 4], // Menggunakan data dari props
           backgroundColor: 'rgba(153, 102, 255, 0.5)', // Warna bar
         },
       ],

@@ -204,7 +204,7 @@ export default function Voting() {
                   <p>{electionDetail.name}</p>
                 </div>
                 <div className='px-2 py-1 w-fit mt-2 bg-yellow-400 rounded-sm border border-gray-300 font-sans text-sm uppercase'>
-                  <p>{`${dateFormat(endTime)} - ${dateFormat(endTime)}`}</p>
+                  <p>{`${dateFormat(startTime)} - ${dateFormat(endTime)}`}</p>
                 </div>
               </div>
               <div
@@ -254,7 +254,7 @@ export default function Voting() {
                   <p>{electionDetail.name}</p>
                 </div>
                 <div className='px-2 py-1 w-fit mt-2 bg-yellow-400 rounded-sm border border-gray-300 font-sans text-sm uppercase'>
-                  <p>{`${dateFormat(endTime)} - ${dateFormat(endTime)}`}</p>
+                  <p>{`${dateFormat(startTime)} - ${dateFormat(endTime)}`}</p>
                 </div>
               </div>
               <div

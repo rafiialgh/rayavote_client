@@ -119,7 +119,7 @@ export default function Page() {
       </h1>
       <div className='flex flex-col items-center justify-center mb-3'>
         <div className='px-2 py-1 mb-3 w-fit bg-yellow-400 rounded-sm border border-gray-300 font-sans text-sm uppercase'>
-          <p>{`${dateFormat(endTime)} - ${dateFormat(endTime)}`}</p>
+          <p>{`${dateFormat(startTime)} - ${dateFormat(endTime)}`}</p>
         </div>
         <div className='w-fit px-2 py-1 mb-3 bg-white rounded-sm border border-gray-300 font-sans uppercase'>
           <p>{electionDetail.name}</p>
