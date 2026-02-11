@@ -1,334 +1,160 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
-import Navbar from '../Navbar';
+import React, { useEffect, useState } from 'react';
+import Navbar from '../Navbar'; // Pastikan path import Navbar benar
 import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
-import { LuPlus } from 'react-icons/lu';
-import { getCandidate, editCandidate } from '@/services/candidate';
+import { LuPlus, LuSearch, LuFilter, LuLoader, LuUserX } from 'react-icons/lu';
 import TableRow from './TableRow';
 import { toast } from 'react-toastify';
 import { getElectionContract } from '@/utils/contract';
+import Link from 'next/link';
 
 export default function Candidate() {
-  interface Candidate {
-    name: string;
-    email: string;
-    description: string;
-    imgHash: string;
-  }
-
-  // const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [candidates, setCandidates] = useState<any>([]);
-  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(
-    null
-  );
-
-  // const getCandidateList = useCallback(async () => {
-  //   try {
-  //     const response = await getCandidate();
-  //     if (!response.error) {
-  //       setCandidates(response.data);
-  //     } else {
-  //       toast.error(response.message);
-  //     }
-  //   } catch (error) {
-  //     toast.error('Gagal memuat data kandidat');
-  //   }
-  // }, [getCandidate]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      // await getCandidateList();
+      setIsLoading(true);
+      try {
+        const address = Cookies.get('address');
+        if (!address) {
+            setIsLoading(false);
+            return;
+        }
 
-      const address = Cookies.get('address');
-      const Election = getElectionContract(address);
-      console.log(Election);
-      if (!Election) {
-        toast.error('Failed to get election contract.');
-        return;
+        const Election = getElectionContract(address);
+        if (!Election) {
+          toast.error('Failed to connect to smart contract.');
+          return;
+        }
+
+        const numOfCandidates = await Election.getNumOfCandidates();
+        
+        const candidatesData = await Promise.all(
+          Array.from({ length: Number(numOfCandidates) }, (_, index) => 
+            Election.getCandidate(index)
+          )
+        );
+
+        const formattedCandidates = candidatesData.map((candidate, index) => ({
+          id: index, 
+          name: candidate[0],
+          description: candidate[1],
+          imgHash: candidate[2],
+          voteCount: Number(candidate[3]),
+          email: candidate[4],
+        }));
+
+        setCandidates(formattedCandidates);
+      } catch (error) {
+        console.error(error);
+        toast.error('Gagal memuat data dari Blockchain');
+      } finally {
+        setIsLoading(false);
       }
-
-      // Get the number of candidates
-      const numOfCandidates = await Election.getNumOfCandidates();
-      console.log('Number of candidates:', numOfCandidates);
-
-      // Fetch data for all candidates concurrently
-      const candidatesData = await Promise.all(
-        Array.from({ length: numOfCandidates }, (_, index) => 
-          Election.getCandidate(index)
-        )
-      );
-
-      // Map the fetched data to a structured format and update state
-      const formattedCandidates = candidatesData.map(candidate => ({
-        name: candidate[0],
-        description: candidate[1],
-        imgHash: candidate[2],
-        voteCount: candidate[3],
-        email: candidate[4],
-      }));
-
-      // Update state with all candidates data
-      setCandidates(formattedCandidates);
     };
 
     fetchData();
-    // getCandidateList();
   }, []);
 
-  // const handleRemoveCandidate = (id: string) => {
-  //   setCandidates((prevCandidates) =>
-  //     prevCandidates.filter((candidate) => candidate._id !== id)
-  //   );
-  // };
-
-  const openEditModal = (candidate: Candidate) => {
-    setEditingCandidate(candidate);
-  };
-
-  const closeEditModal = () => {
-    setEditingCandidate(null);
-  };
-
-  // const handleSave = async (updatedCandidate: Candidate) => {
-  //   try {
-  //     const response = await editCandidate(
-  //       updatedCandidate._id,
-  //       updatedCandidate
-  //     );
-  //     if (!response.error) {
-  //       toast.success(response.message);
-  //       setCandidates((prev) =>
-  //         prev.map((c) =>
-  //           c._id === updatedCandidate._id ? updatedCandidate : c
-  //         )
-  //       );
-  //       closeEditModal();
-  //     } else {
-  //       toast.error(response.message);
-  //     }
-  //   } catch (error) {
-  //     toast.error('Gagal memperbarui kandidat');
-  //   }
-  // };
-
-  return (
-    <>
-      <div>
-        <div className='flex mb-3 justify-between items-center bg-white rounded-lg border border-gray-300'>
-          <div className='ml-10'>
-            <h1 className='text-black text-lg'>Candidate List</h1>
-          </div>
-          <a
-            href='/dashboard/candidate/add'
-            className='w-fit h-fit py-2 px-5 bg-green-500 hover:bg-green-600 transition-all rounded-lg flex items-center'
-          >
-            <span className='mr-3'>
-              <LuPlus />
-            </span>
-            Add candidate
-          </a>
-        </div>
-        <div className='relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-xl bg-clip-border border border-gray-300'>
-          <table className='w-full text-left table-auto min-w-max'>
-            <thead>
-              <tr>
-                <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
-                  <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Image
-                  </p>
-                </th>
-                <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
-                  <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Name
-                  </p>
-                </th>
-                <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
-                  <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Email
-                  </p>
-                </th>
-                <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
-                  <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Description
-                  </p>
-                </th>
-                <th className='p-4 border-b border-blue-gray-100 bg-blue-gray-50'>
-                  <p className='block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70'>
-                    Vote Count
-                  </p>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {candidates.map((candidate: any, index: any) => (
-                <TableRow
-                  key={index}
-                  {...candidate}
-                  // onRemove={handleRemoveCandidate}
-                  onEdit={openEditModal}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {editingCandidate && (
-        <EditModal
-          candidate={editingCandidate}
-          onClose={closeEditModal}
-          // onSave={handleSave}
-        />
-      )}
-    </>
+  const filteredCandidates = candidates.filter((c: any) => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-}
-
-const EditModal = ({ candidate, onClose, onSave }: any) => {
-  const [formData, setFormData] = useState({
-    username: '',
-    firstName: '',
-    lastName: '',
-    dateOfBirth: '',
-    degree: '',
-    description: '',
-  });
-
-  useEffect(() => {
-    if (candidate) {
-      setFormData(candidate);
-    }
-  }, [candidate]);
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
-    const { username, firstName, dateOfBirth, degree, description } = formData;
-    if (!username || !firstName || !dateOfBirth || !degree || !description) {
-      toast.warning('Pastikan semua field bertanda (*) sudah diisi.');
-      return;
-    }
-
-    await onSave(formData);
-    onClose();
-  };
 
   return (
-    <div className='modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 pt-28'>
-      <div className='bg-white p-6 rounded shadow-md w-full max-w-md'>
-        <h2 className='text-2xl font-bold mb-4'>Edit Candidate</h2>
+    <div className="min-h-screen bg-slate-50 font-sans text-[#222222]">
+      <Navbar />
 
-        <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              Username *
-            </label>
-            <input
-              type='text'
-              name='username'
-              value={formData.username}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
+      <div className="pt-28 pb-10 px-6 max-w-[1280px] mx-auto">
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+            <div>
+                <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-2">
+                    Candidate Management
+                </h1>
+                <p className="text-gray-500">
+                    Manage profiles and view vote counts stored on the blockchain.
+                </p>
+            </div>
+            
+            <Link href='/dashboard/candidate/add'>
+                <button className='flex items-center gap-2 bg-black hover:bg-[#FF8D1D] hover:text-black text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-[#FF8D1D]/20 active:scale-95'>
+                    <LuPlus size={20} />
+                    <span>Add New Candidate</span>
+                </button>
+            </Link>
+        </div>
 
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              First Name *
-            </label>
-            <input
-              type='text'
-              name='firstName'
-              value={formData.firstName}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
-
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              Last Name
-            </label>
-            <input
-              type='text'
-              name='lastName'
-              value={formData.lastName}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
-
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              Date of Birth *
-            </label>
-            <input
-              type='date'
-              name='dateOfBirth'
-              value={formatDate(formData.dateOfBirth)}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
-
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              Degree *
-            </label>
-            <input
-              type='text'
-              name='degree'
-              value={formData.degree}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
-
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>
-              Description *
-            </label>
-            <textarea
-              name='description'
-              value={formData.description}
-              onChange={handleChange}
-              className='w-full px-3 py-2 border rounded-lg font-sans'
-            />
-          </div>
-
-          <div className='flex justify-end gap-2'>
-            <button
-              type='button'
-              onClick={onClose}
-              className='bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600'
-            >
-              Cancel
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="relative w-full md:w-96 group">
+                <LuSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors" />
+                <input 
+                    type="text" 
+                    placeholder="Search by name or email..." 
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] transition-all"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            
+            <button className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-colors w-full md:w-auto justify-center">
+                <LuFilter size={18} />
+                <span>Filter</span>
             </button>
-            <button
-              type='submit'
-              className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
-            >
-              Save
-            </button>
-          </div>
-        </form>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50/50 border-b border-gray-100">
+                            <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest">Profile</th>
+                            <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest">Candidate Info</th>
+                            <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest">Contact</th>
+                            <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest">Vision / Description</th>
+                            <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Votes</th>
+                            {/* <th className="p-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th> */}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {isLoading ? (
+                            [...Array(3)].map((_, i) => (
+                                <tr key={i} className="animate-pulse">
+                                    <td className="p-6"><div className="w-12 h-12 bg-gray-200 rounded-xl"></div></td>
+                                    <td className="p-6"><div className="h-4 bg-gray-200 rounded w-32 mb-2"></div><div className="h-3 bg-gray-200 rounded w-20"></div></td>
+                                    <td className="p-6"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
+                                    <td className="p-6"><div className="h-4 bg-gray-200 rounded w-full"></div></td>
+                                    <td className="p-6"><div className="h-8 bg-gray-200 rounded w-12 mx-auto"></div></td>
+                                </tr>
+                            ))
+                        ) : filteredCandidates.length > 0 ? (
+                            filteredCandidates.map((candidate: any, index: number) => (
+                                <TableRow
+                                    key={index}
+                                    {...candidate}
+                                />
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={6} className="p-12 text-center">
+                                    <div className="flex flex-col items-center justify-center text-gray-400">
+                                        <div className="bg-gray-50 p-4 rounded-full mb-4">
+                                            <LuUserX size={32} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-600">No Candidates Found</h3>
+                                        <p className="text-sm">Try adjusting your search or add a new candidate.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
       </div>
     </div>
   );
-};
+}

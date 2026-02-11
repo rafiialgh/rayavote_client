@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -8,6 +9,8 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
+  ChartOptions
 } from 'chart.js';
 
 ChartJS.register(
@@ -19,64 +22,96 @@ ChartJS.register(
   Legend
 );
 
-interface ChartDataType {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    backgroundColor: string;
-  }[];
-}
-
 interface ChartProps {
   labels: string[];
   data: number[];
 }
 
 function Chart({ labels, data }: ChartProps) {
-  const [chartData, setChartData] = useState<ChartDataType>({
+  const [chartData, setChartData] = useState<ChartData<'bar'>>({
     labels: [],
     datasets: [],
   });
-  const [chartOptions, setChartOptions] = useState({});
+  
+  const [chartOptions, setChartOptions] = useState<ChartOptions<'bar'>>({});
 
   useEffect(() => {
-    // Data untuk Chart.js
-    const chartData = {
-      labels: labels, // Menggunakan labels dari props
+    // Konfigurasi Data
+    const formattedData: ChartData<'bar'> = {
+      labels: labels,
       datasets: [
         {
-          label: 'Voters',
-          data: [7, 4], // Menggunakan data dari props
-          backgroundColor: 'rgba(153, 102, 255, 0.5)', // Warna bar
+          label: 'Total Votes',
+          data: data,
+          backgroundColor: '#FF8D1D',
+          hoverBackgroundColor: '#e0760e',
+          borderRadius: 8,
+          barThickness: 'flex',
+          maxBarThickness: 60,
         },
       ],
     };
 
-    // Opsi untuk Chart.js
-    const chartOptions = {
+    const options: ChartOptions<'bar'> = {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top' as const,
+          display: false,
         },
         title: {
-          display: true,
-          text: 'Elections Overview',
+          display: false,
+        },
+        tooltip: {
+          backgroundColor: '#000',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false,
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            color: '#6b7280',
+            font: {
+              weight: 'bold'
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: '#f3f4f6',
+            tickLength: 10,
+          },
+          ticks: {
+            stepSize: 1,
+            color: '#9ca3af',
+          },
+          border: {
+             display: false
+          }
         },
       },
+      animation: {
+        duration: 1500,
+        easing: 'easeOutQuart'
+      }
     };
 
-    setChartData(chartData); // Set data untuk chart
-    setChartOptions(chartOptions); // Set opsi untuk chart
-  }, [labels, data]); // Hanya dijalankan ulang jika labels atau data berubah
+    setChartData(formattedData);
+    setChartOptions(options);
+  }, [labels, data]);
 
   return (
-    <>
-      <div className='w-full max-w-3xl mx-auto'>
-        <Bar data={chartData} options={chartOptions} />
-      </div>
-    </>
+    <div className='w-full h-full'>
+      <Bar data={chartData} options={chartOptions} />
+    </div>
   );
 }
 

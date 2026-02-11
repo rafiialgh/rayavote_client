@@ -17,10 +17,10 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const crushed = Crushed({
-  weight: '400',
-  subsets: ['latin'],
-});
+// const crushed = Crushed({
+//   weight: '400',
+//   subsets: ['latin'],
+// });
 
 export const metadata: Metadata = {
   title: "Raya Vote",
@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${crushed.className} bg-white`}
+        className="bg-white"
       >
         {children}
       <ToastContainer theme="colored" />

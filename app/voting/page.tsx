@@ -2,38 +2,32 @@
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 import Navbar from './Navbar';
-import { getCandidateVoter } from '@/services/candidate';
 import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 import { getElectionContract } from '@/utils/contract';
 import { getElection } from '@/services/election';
-import { LuCheck, LuX } from 'react-icons/lu';
+import {
+  LuCheck,
+  LuX,
+  LuLoader,
+  LuClock,
+  LuCalendarDays,
+  LuVote,
+  LuTrophy,
+  LuUsers
+} from 'react-icons/lu';
 
 export default function Voting() {
   interface Candidate {
-    _id: string;
-    username: string;
-    firstName: string;
-    lastName?: string;
-    dateOfBirth: string;
-    degree: string;
-    description: string;
-  }
-
-  interface Voter {
-    _id: string;
-    nim: string;
     name: string;
-    email: string;
+    description: string;
+    imgHash: string;
+    voteCount: string;
+    index: number;
   }
 
-  interface DecodedToken {
-    voter: Voter;
-  }
-
-  const [users, setUsers] = useState<any>();
-  const [candidates, setCandidates] = useState<any>([]);
+  const [users, setUsers] = useState<string>('');
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -42,60 +36,50 @@ export default function Voting() {
     name: '',
     description: '',
   });
-  const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   const getUserDetail = useCallback(async () => {
     const email = Cookies.get('emailVoter');
-
-    setUsers(email);
+    setUsers(email || '');
   }, []);
 
   const dateFormat = (date: any) => {
-    const formattedDate = new Date(date).toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(date).toLocaleDateString('id-ID', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
-
-    return formattedDate;
   };
 
   const getElectionStatus = useCallback(async () => {
     const address = Cookies.get('address');
-    const response = await getElection(address);
-    setStartTime(response.data.startTime);
-    setEndTime(response.data.endTime);
-    setStatus(response.data.currentPhase);
-    console.log(response);
+    if (address) {
+      const response = await getElection(address);
+      setStartTime(response.data.startTime);
+      setEndTime(response.data.endTime);
+      setStatus(response.data.currentPhase);
+    }
   }, []);
 
   const getCandidateList = useCallback(async () => {
-    console.log(status);
     const address = Cookies.get('address');
+    if (!address) return;
+
     const Election = getElectionContract(address);
-    console.log(Election);
     if (!Election) {
-      toast.error('Failed to get election contract.');
+      toast.error('Gagal memuat kontrak pemilihan.');
       return;
     }
 
     const numOfCandidates = await Election.getNumOfCandidates();
-    console.log('Number of candidates:', numOfCandidates);
-
     const candidatesData = await Promise.all(
-      Array.from({ length: numOfCandidates }, (_, index) =>
-        Election.getCandidate(index)
-      )
+      Array.from({ length: numOfCandidates }, (_, index) => Election.getCandidate(index))
     );
 
     const formattedCandidates = candidatesData.map((candidate, index) => ({
       name: candidate[0],
       description: candidate[1],
       imgHash: candidate[2],
-      voteCount: candidate[3],
+      voteCount: candidate[3].toString(),
       email: candidate[4],
       index,
     }));
@@ -107,235 +91,209 @@ export default function Voting() {
     });
 
     setCandidates(formattedCandidates);
-    console.log('election ongoing');
-  }, [getElectionStatus]);
+  }, []);
 
   const handleVote = async (candidateIndex: number) => {
-    const address = Cookies.get('address');
-    const response = await getElection(address);
-    const checkStatus = response.data.currentPhase;
+    if (!selectedCandidate) return;
 
-    console.log(status);
-    if (checkStatus == 'ongoing') {
+    if (status === 'ongoing') {
       setIsLoading(true);
       setShowModal(false);
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const address = Cookies.get('address');
-      const Election = getElectionContract(address);
-
-      if (!Election) {
-        toast.error('Failed to get election contract.');
-        return;
-      }
-
       try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = Cookies.get('address');
+        const Election = getElectionContract(address);
         const email = Cookies.get('emailVoter');
-        const tx = await Election.vote(selectedCandidate.index, email);
+
+        const tx = await Election.vote(candidateIndex, email);
         await tx.wait();
-        setIsLoading(false);
-        setShowModal(false);
-        console.log(tx);
 
-        toast.success('Your vote has been successfully submitted!');
-
-        const updatedCandidate = await Election.getCandidate(candidateIndex);
-
-        const updatedCandidates = [...candidates];
-        updatedCandidates[candidateIndex] = {
-          ...updatedCandidates[candidateIndex],
-          voteCount: updatedCandidate[3],
-        };
-
-        setCandidates(updatedCandidates);
+        toast.success('Suara berhasil disimpan di blockchain!');
+        getCandidateList();
       } catch (error) {
         console.error(error);
+        toast.error('Gagal melakukan voting.');
+      } finally {
         setIsLoading(false);
-        setShowModal(false);
-        toast.error('Failed to cast your vote.');
       }
-    } else if (status == 'init') {
-      toast.warning('Pemilihan belum dimulai');
-      window.location.reload();
     } else {
-      toast.warning('Pemilihan sudah selesai');
-      window.location.reload();
+      toast.warning('Pemilihan sedang tidak aktif.');
     }
   };
 
   useEffect(() => {
     getElectionStatus();
     getUserDetail();
-  }, [getUserDetail]);
+  }, [getUserDetail, getElectionStatus]);
 
   useEffect(() => {
     if (status) {
       getCandidateList();
     }
-  }, [status]);
+  }, [status, getCandidateList]);
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 font-sans text-[#222222] pb-20">
       <Navbar user={users} />
+
       {isLoading && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white p-5 rounded-md shadow-lg'>
-            <p className='text-lg font-semibold'>Voting...</p>
+        <div className='fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-[100]'>
+          <div className='flex flex-col items-center animate-pulse'>
+            <LuLoader className='animate-spin text-[#FF8D1D] mb-4' size={50} />
+            <h3 className='text-xl font-black tracking-tight'>MEMPROSES SUARA</h3>
+            <p className='text-gray-500 text-sm mt-2'>Mencatat transaksi ke Blockchain...</p>
           </div>
         </div>
       )}
 
-      <div className='flex w-full justify-center items-center'>
-        {status == 'init' && (
-          <div className='p-5 bg-yellow-400 rounded-lg border border-gray-300 flex flex-col items-center justify-center font-sans'>
-            <p>Pemilihan belum dimulai</p>
-            <p>Waktu mulai: {dateFormat(startTime)}</p>
-          </div>
-        )}
+      <div className='pt-28 px-4 md:px-8 max-w-[1200px] mx-auto'>
 
-        {status == 'completed' && (
-          <div className='flex flex-col'>
-            <div className='p-5 mb-5 bg-yellow-400 rounded-lg border border-gray-300 flex flex-col items-center justify-center font-sans'>
-              <p>Pemilihan sudah berakhir</p>
-              <p>Waktu berakhir: {dateFormat(endTime)}</p>
-            </div>
-            <div className='p-5 bg-gray-100 rounded-lg border border-gray-400 '>
-              <div className='flex flex-col items-center justify-center'>
-                <div className='w-fit px-2 py-1 bg-white rounded-sm border border-gray-300 font-sans uppercase'>
-                  <p>{electionDetail.name}</p>
-                </div>
-                <div className='px-2 py-1 w-fit mt-2 bg-yellow-400 rounded-sm border border-gray-300 font-sans text-sm uppercase'>
-                  <p>{`${dateFormat(startTime)} - ${dateFormat(endTime)}`}</p>
-                </div>
-              </div>
-              <div
-                className={`grid grid-cols-${
-                  candidates.length > 1 ? 2 : 1
-                } gap-14 m-10`}
-              >
-                {candidates.map((candidate: any, index: any) => {
-                  return (
-                    <div
-                      className='w-72 h-full p-3 bg-white rounded-lg border border-gray-400'
-                      key={index}
-                    >
-                      <div className='w-full h-56 rounded-lg overflow-hidden border border-gray-400 mb-3'>
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_IMG}/${candidate.imgHash}`}
-                          alt={candidate.name}
-                          width={100}
-                          height={100}
-                          className='w-full h-full object-cover'
-                        />
-                      </div>
-                      <h1 className='text-xl mb-1'>
-                        {candidate.name} #{index + 1}
-                      </h1>
-                      <p className='text-sm font-sans break-words mb-1'>
-                        {candidate.description}
-                      </p>
-                      <p className='font-sans text-sm mb-2 py-1 px-2 bg-green-300 border border-gray-300 w-fit rounded-md'>
-                        Vote Count: {candidate.voteCount}
-                      </p>
-                      
-                    </div>
-                  );
-                })}
-                
-              </div>
-            </div>
-          </div>
-        )}
-
-        {status == 'ongoing' && (
-          <>
-            <div className='p-5 bg-gray-100 rounded-lg border border-gray-400 '>
-              <div className='flex flex-col items-center justify-center'>
-                <div className='w-fit px-2 py-1 bg-white rounded-sm border border-gray-300 font-sans uppercase'>
-                  <p>{electionDetail.name}</p>
-                </div>
-                <div className='px-2 py-1 w-fit mt-2 bg-yellow-400 rounded-sm border border-gray-300 font-sans text-sm uppercase'>
-                  <p>{`${dateFormat(startTime)} - ${dateFormat(endTime)}`}</p>
-                </div>
-              </div>
-              <div
-                className={`grid grid-cols-${
-                  candidates.length > 1 ? 2 : 1
-                } gap-14 m-10`}
-              >
-                {candidates.map((candidate: any, index: any) => {
-                  return (
-                    <div
-                      className='w-72 h-full p-3 bg-white rounded-lg border border-gray-400'
-                      key={index}
-                    >
-                      <div className='w-full h-56 rounded-lg overflow-hidden border border-gray-400 mb-3'>
-                        <Image
-                          src={`${process.env.NEXT_PUBLIC_IMG}/${candidate.imgHash}`}
-                          alt={candidate.name}
-                          width={100}
-                          height={100}
-                          className='w-full h-full object-cover'
-                        />
-                      </div>
-                      <h1 className='text-xl mb-1'>
-                        {candidate.name} #{index + 1}
-                      </h1>
-                      <p className='text-sm font-sans break-words mb-1'>
-                        {candidate.description}
-                      </p>
-                      <p className='font-sans text-sm mb-2 py-1 px-2 bg-green-300 border border-gray-300 w-fit rounded-md'>
-                        Vote Count: {candidate.voteCount}
-                      </p>
-                      <div className='w-full mt-6'>
-                        <button
-                          onClick={() => {
-                            setSelectedCandidate(candidate);
-                            setShowModal(true);
-                          }}
-                          className='bg-[#FF8D1D] hover:shadow-lg transition-all p-2 w-full rounded-md'
-                        >
-                          Vote
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {showModal && (
-                  <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-                    <div className='bg-white p-5 rounded-md shadow-lg w-96'>
-                      <h2 className='text-xl font-bold'>Konfirmasi Voting</h2>
-                      <p>
-                        Apakah Anda yakin ingin memilih{' '}
-                        {selectedCandidate?.name}?
-                      </p>
-                      <div className='flex justify-end mt-4 gap-2'>
-                        <button
-                          className='flex justify-center items-center bg-red-500 p-2 rounded-md text-white'
-                          onClick={() => setShowModal(false)}
-                        >
-                          <span className='mr-3'>
-                            <LuX />
-                          </span>
-                          Batal
-                        </button>
-                        <button
-                          className='flex justify-center items-center bg-green-500 p-2 rounded-md text-white'
-                          onClick={() => handleVote(selectedCandidate.index)}
-                        >
-                          <span className='mr-3'>
-                            <LuCheck />
-                          </span>
-                          Ya, Vote
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+        <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-gray-100 mb-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="bg-black text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  Election Event
+                </span>
+                {status === 'ongoing' && (
+                  <span className="flex items-center gap-2 text-[#FF8D1D] text-xs font-bold uppercase tracking-wider animate-pulse">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF8D1D] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF8D1D]"></span>
+                    </span>
+                    Live Voting
+                  </span>
                 )}
               </div>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight mb-2">
+                {electionDetail.name || 'Memuat Data...'}
+              </h1>
+              <p className="text-gray-500 max-w-2xl text-lg">
+                {electionDetail.description}
+              </p>
             </div>
-          </>
+
+            <div className="flex flex-col gap-2 w-full md:w-auto bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
+                <LuCalendarDays className="text-[#FF8D1D]" />
+                <span>Mulai: <span className="text-black font-bold">{dateFormat(startTime)}</span></span>
+              </div>
+              <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
+                <LuClock className="text-[#FF8D1D]" />
+                <span>Selesai: <span className="text-black font-bold">{dateFormat(endTime)}</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {status === 'init' ? (
+          <div className='flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200'>
+            <div className="bg-gray-100 p-4 rounded-full mb-4">
+              <LuClock size={40} className="text-gray-400" />
+            </div>
+            <h2 className='text-2xl font-bold text-gray-800'>Pemilihan Belum Dimulai</h2>
+            <p className='text-gray-500'>Silakan kembali pada waktu yang ditentukan.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {candidates.map((candidate, index) => (
+              <div
+                key={index}
+                className="group relative bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="relative h-72 w-full overflow-hidden bg-gray-200">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_IMG}/${candidate.imgHash}`}
+                    alt={candidate.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-black tracking-tighter shadow-sm border border-white/20">
+                    Candidate #{index + 1}
+                  </div>
+
+                  <div className="absolute top-4 right-4 bg-[#FF8D1D] text-black px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-[#FF8D1D]/20 transform transition-transform group-hover:scale-110">
+                    <LuUsers size={14} className="fill-black/10" />
+                    <span>{candidate.voteCount} Suara</span>
+                  </div>
+                </div>
+
+                <div className="p-6 md:p-8">
+                  <h3 className="text-2xl font-black text-gray-900 mb-2 leading-tight">
+                    {candidate.name}
+                  </h3>
+
+                  {/*<div className="w-full bg-gray-100 h-1.5 rounded-full mb-4 overflow-hidden">*/}
+                  {/*  <div*/}
+                  {/*    className="bg-[#FF8D1D] h-full rounded-full transition-all duration-1000 ease-out"*/}
+                  {/*    style={{ width: `${Math.min(parseInt(candidate.voteCount) * 2, 100)}%` }} // Visual saja, logic persentase asli butuh total vote*/}
+                  {/*  ></div>*/}
+                  {/*</div>*/}
+
+                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-8 h-[60px] overflow-scroll">
+                    {candidate.description}
+                  </p>
+
+                  {status === 'ongoing' ? (
+                    <button
+                      onClick={() => {
+                        setSelectedCandidate(candidate);
+                        setShowModal(true);
+                      }}
+                      className="w-full bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 group-hover:bg-[#FF8D1D] group-hover:text-black transition-colors duration-300 shadow-xl shadow-transparent group-hover:shadow-[#FF8D1D]/20"
+                    >
+                      <LuVote size={20} />
+                      Pilih Kandidat
+                    </button>
+                  ) : (
+                    <button disabled className="w-full bg-gray-100 text-gray-400 font-bold py-4 rounded-xl cursor-not-allowed border border-gray-200">
+                      Pemilihan Selesai
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-    </>
+
+      {showModal && selectedCandidate && (
+        <div className='fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[110] p-4'>
+          <div className='bg-white rounded-3xl p-8 md:p-10 max-w-md w-full shadow-2xl scale-in-center'>
+            <div className="flex justify-between items-start mb-6">
+              <div className="bg-[#FF8D1D]/10 p-3 rounded-2xl text-[#FF8D1D]">
+                <LuVote size={32} />
+              </div>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-black transition-colors">
+                <LuX size={24} />
+              </button>
+            </div>
+
+            <h2 className='text-3xl font-black mb-3'>Konfirmasi Pilihan</h2>
+            <p className='text-gray-500 mb-8 leading-relaxed'>
+              Anda akan memilih <span className="font-bold text-black">{selectedCandidate.name}</span>.
+              Transaksi ini akan dicatat di blockchain dan tidak dapat diubah.
+            </p>
+
+            <div className='grid grid-cols-2 gap-4'>
+              <button
+                className='py-4 rounded-xl font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors'
+                onClick={() => setShowModal(false)}
+              >
+                Batal
+              </button>
+              <button
+                className='py-4 rounded-xl font-bold bg-[#FF8D1D] hover:bg-[#ff9d3d] text-black shadow-lg shadow-[#FF8D1D]/20 flex items-center justify-center gap-2'
+                onClick={() => handleVote(selectedCandidate.index)}
+              >
+                <LuCheck size={20} />
+                Ya, Pilih
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

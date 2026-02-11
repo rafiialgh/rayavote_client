@@ -15,7 +15,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login/company', req.url));
   }
 
-  // voter
+  // // voter
   if (
     protectedRoutesVoter.some((route) => req.nextUrl.pathname.startsWith(route)) &&
     !tokenVoter

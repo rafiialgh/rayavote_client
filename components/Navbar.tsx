@@ -1,126 +1,60 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import logo from '../public/img/logo.svg';
 import { LuArrowUpRight, LuMenu, LuX } from 'react-icons/lu';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
-  const threshold = 100;
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  // Handle scroll behavior
   useEffect(() => {
-    const handleScroll = () => {
-      if (typeof window !== 'undefined') {
-        const currentScrollY = window.scrollY;
-
-        if (currentScrollY > threshold) {
-          if (currentScrollY > lastScrollY) {
-            setIsVisible(false); // Hide navbar on scroll down
-          } else if (isMenuOpen) {
-            setIsVisible(true);
-          } else {
-            setIsVisible(true); // Show navbar on scroll up
-          }
-          setLastScrollY(window.scrollY);
-        }
-      }
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [lastScrollY]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav
-      className={`fixed w-full z-50 transition-transform duration-300 flex justify-center ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      }`}
-    >
-      <div
-        className={`w-[90%] top-0 bg-black h-20 mx-4 mt-4 md:m-10 items-center flex ${
-          isMenuOpen ? 'rounded-t-lg' : 'rounded-lg'
-        } `}
-      >
-        <div className='flex w-full mx-10 items-center justify-between'>
-          {/* Logo */}
-          <Image src={logo} width={40} height={50} alt='logo' />
+    <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'top-4' : 'top-0'}`}>
+      <div className={`mx-auto transition-all duration-500 ${scrolled ? 'max-w-[90%] md:max-w-[1100px]' : 'max-w-full'}`}>
+        <div className={`relative flex items-center justify-between px-6 py-4 transition-all duration-300 ${
+          scrolled ? 'bg-black/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl' : 'bg-transparent'
+        }`}>
+          <div className="flex items-center gap-2 group cursor-pointer">
+            <div className="w-10 h-10 bg-[#FF8D1D] rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
+              <span className="text-black font-bold text-xl">RV</span>
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">RayaVote</span>
+          </div>
 
-          {/* Mobile Menu Toggle */}
-          <div className='md:hidden'>
-            <button
-              onClick={toggleMenu}
-              className='text-white p-2 focus:outline-none'
-            >
-              {isMenuOpen ? <LuX size={24} /> : <LuMenu size={24} />}
+          <ul className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+            {['Home', 'About', 'Services'].map((item) => (
+              <li key={item} className="hover:text-[#FF8D1D] cursor-pointer transition-colors">{item}</li>
+            ))}
+          </ul>
+
+          <div className="hidden md:flex items-center gap-4">
+            <button className="text-white text-sm font-medium px-5 py-2 hover:opacity-70 transition-opacity">Login</button>
+            <button className="bg-[#FF8D1D] hover:bg-[#ff9d3d] text-black font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-[#FF8D1D]/20">
+              Get Started <LuArrowUpRight size={18} />
             </button>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className='hidden md:block'>
-            <ul className='flex gap-7 text-[#222222]'>
-              <li className='py-1 px-7 rounded-lg bg-white '>Home</li>
-              <li className='py-1 px-7 rounded-lg bg-white '>About</li>
-              <li className='py-1 px-7 rounded-lg bg-white '>Services</li>
-            </ul>
-          </div>
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white p-2">
+            {isMenuOpen ? <LuX size={28} /> : <LuMenu size={28} />}
+          </button>
+        </div>
 
-          {/* Desktop CTA Buttons */}
-          <div className='hidden md:block'>
-            <ul className='flex gap-7 text-[#222222]'>
-              <li className='py-1 px-4 rounded-lg bg-white flex items-center'>
-                Voter{' '}
-                <span className='ml-2'>
-                  <LuArrowUpRight />
-                </span>
-              </li>
-              <li className='py-1 px-4 rounded-lg bg-[#FF8D1D] text-[#222222] flex items-center'>
-              Organization{' '}
-                <span className='ml-2'>
-                  <LuArrowUpRight />
-                </span>
-              </li>
+        <div className={`md:hidden absolute left-0 right-0 mt-2 transition-all duration-300 origin-top ${isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
+          <div className="bg-black/95 backdrop-blur-xl mx-4 rounded-2xl p-6 border border-white/10 shadow-2xl">
+            <ul className="space-y-4 mb-6">
+              {['Home', 'About', 'Services'].map((item) => (
+                <li key={item} className="text-white text-lg font-medium border-b border-white/5 pb-2">{item}</li>
+              ))}
             </ul>
+            <button className="w-full bg-[#FF8D1D] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+              Organization <LuArrowUpRight />
+            </button>
           </div>
-
-          {/* Mobile Menu Overlay */}
-          {isMenuOpen && (
-            <div className='md:hidden absolute top-full left-0 w-[90%] bg-black rounded-b-lg mx-4 shadow-lg'>
-              <div className='flex flex-col'>
-                <ul className='text-white'>
-                  <li className='py-3 border-b border-gray-700 mx-10'>Home</li>
-                  <li className='py-3 border-b border-gray-700 mx-10'>About</li>
-                  <li className='py-3 border-b border-gray-700 mx-10'>
-                    Services
-                  </li>
-                </ul>
-                <div className='flex flex-col gap-y-4 my-4 mx-10'>
-                  <button className='py-2 px-4 rounded-lg bg-white text-black flex items-center justify-center'>
-                    Voter{' '}
-                    <span className='ml-2'>
-                      <LuArrowUpRight />
-                    </span>
-                  </button>
-                  <button className='py-2 px-4 rounded-lg bg-[#FF8D1D] flex items-center justify-center'>
-                    Company{' '}
-                    <span className='ml-2'>
-                      <LuArrowUpRight />
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </nav>

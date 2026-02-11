@@ -15,7 +15,6 @@ export default function CreateElectionPage() {
   const cookieStore = cookies();
   const token = cookieStore.get('token')?.value;
 
-  // Redirect jika token tidak ditemukan
   if (!token) {
     redirect('/login/company');
   }

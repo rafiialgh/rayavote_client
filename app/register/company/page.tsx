@@ -3,7 +3,7 @@ import { setSignUp } from '@/services/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { LuArrowLeft } from 'react-icons/lu';
+import { LuArrowLeft, LuMail, LuLock, LuLoader, LuShieldPlus } from 'react-icons/lu';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
@@ -16,118 +16,161 @@ export default function RegisterCompany() {
   const router = useRouter();
 
   const onSubmit = async () => {
-    const data = {
-      email,
-      password,
-    };
+    if (!email || !password || !repeatPassword) {
+      toast.warning('All fields are required!');
+      return;
+    } 
+    
+    if (password !== repeatPassword) {
+      toast.warning('Passwords do not match!');
+      return;
+    }
 
-    if (!data.email || !data.password) {
-      toast.warning('Email dan password harus diisi!');
-    } else if (password !== repeatPassword) {
-      toast.warning('Password dan Repeat Password tidak cocok!');
-    } else {
-      try {
-        const response = await setSignUp(data);
-        if (response.error) {
-          const errorMessage = response.message.split("email:")[1]?.trim();
-          toast.error(errorMessage);
-        } else {
-          setIsLoading(true);
-          toast.success('Registrasi Berhasil!');
-          setTimeout(() => {
-            router.push('/login/company');
-          }, 2000);
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error('Terjadi kesalahan saat registrasi.');
+    setIsLoading(true);
+    try {
+      const response = await setSignUp({ email, password });
+      if (response.error) {
+        const errorMessage = response.message.split("email:")[1]?.trim() || response.message;
+        toast.error(errorMessage);
         setIsLoading(false);
+      } else {
+        toast.success('Registration successful!');
+        setTimeout(() => {
+          router.push('/login/company');
+        }, 1500);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error('Registration failed. Please try again.');
+      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      {/* Overlay Loading */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-5 rounded-md shadow-lg">
-            <p className="text-lg font-semibold">Redirecting to login...</p>
+    <div className='flex w-full h-screen bg-white font-sans overflow-hidden text-[#222222]'>
+      <div className='hidden md:flex flex-[3] relative bg-black'>
+        <img
+          src='/img/login-banner.png'
+          alt='banner'
+          className='absolute inset-0 w-full h-full object-cover opacity-80'
+        />
+        <div className='relative z-10 flex flex-col justify-end p-16 text-white bg-gradient-to-t from-black/80 to-transparent w-full'>
+          <div className='bg-[#FF8D1D] w-fit p-2 rounded-lg mb-6 shadow-lg shadow-[#FF8D1D]/40'>
+            <LuShieldPlus size={32} className='text-black' />
           </div>
-        </div>
-      )}
-
-      <div className="flex w-full h-screen">
-        <div className="flex-[4] hidden md:block overflow-hidden">
-          <img
-            src="/img/login-banner.png"
-            alt="banner"
-            className="object-cover h-screen object-right"
-          />
-        </div>
-        <div className="flex-[2] bg-white">
-          <div className="mb-5 border-b py-5 px-10">
-            <Link href="/">
-              <p className="flex items-center text-xl">
-                <span className="mr-1">
-                  <LuArrowLeft />
-                </span>
-                Back
-              </p>
-            </Link>
-          </div>
-
-          <div className="p-10 flex flex-col">
-            <div className="flex items-center mb-10">
-              <h1 className="text-5xl mr-3">
-              Organization <br /> Register
-              </h1>
-              <img src="/img/vector2.png" alt="" className="h-[82px]" />
-            </div>
-
-            <div className="w-full h-fit bg-[#D9D9D9] p-3 rounded-lg">
-              <div className="w-full h-full bg-white rounded-sm px-5 py-10 flex flex-col">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="border border-black rounded-sm p-2 mb-5 font-sans"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  className="border border-black rounded-sm p-2 mb-5 font-sans"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-
-                <label htmlFor="repeatPassword">Repeat Password</label>
-                <input
-                  type="password"
-                  placeholder="Repeat your password"
-                  className="border border-black rounded-sm p-2 mb-5 font-sans"
-                  value={repeatPassword}
-                  onChange={(event) => setRepeatPassword(event.target.value)}
-                />
-
-                <div className="">
-                  <button
-                    type="button"
-                    onClick={onSubmit}
-                    className="bg-[#FF8D1D] w-full p-2 border border-black rounded-sm hover:bg-[#FF9E3D] transition"
-                  >
-                    Sign Up
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <h2 className='text-4xl font-bold mb-4'>Empower Your Democracy</h2>
+          <p className='text-gray-300 max-w-md'>
+            Start your journey toward transparent, secure, and tamper-proof voting today. Join the decentralized revolution.
+          </p>
         </div>
       </div>
-    </>
+
+      <div className='flex-[2] flex flex-col h-full bg-white overflow-y-auto'>
+        <div className='py-6 px-8 md:px-12'>
+          <Link href='/'>
+            <button className='group flex items-center text-sm font-semibold text-gray-500 hover:text-black transition-colors'>
+              <LuArrowLeft className='mr-2 group-hover:-translate-x-1 transition-transform' />
+              Back to Home
+            </button>
+          </Link>
+        </div>
+
+        <div className='flex-1 flex flex-col justify-center px-8 md:px-20 py-10'>
+          <div className='mb-10'>
+            <div className='flex items-center gap-3 mb-2'>
+              <h1 className='text-4xl md:text-5xl font-black tracking-tight text-gray-900'>
+                Create<br />Organization
+              </h1>
+              <img src='/img/vector2.png' alt='' className='h-12 w-auto' />
+            </div>
+            <p className='text-gray-500 font-medium'>Join us to start managing your digital elections.</p>
+          </div>
+
+          <div className='space-y-5'>
+            <div className='space-y-2'>
+              <label className='text-sm font-bold text-gray-700 uppercase tracking-wider' htmlFor='email'>
+                Email Address
+              </label>
+              <div className='relative group'>
+                <LuMail size={20} className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' />
+                <input
+                  id='email'
+                  type='email'
+                  placeholder='admin@organization.com'
+                  className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-sm font-bold text-gray-700 uppercase tracking-wider' htmlFor='password'>
+                Password
+              </label>
+              <div className='relative group'>
+                <LuLock size={20} className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' />
+                <input
+                  id='password'
+                  type='password'
+                  placeholder='Create a secure password'
+                  className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-sm font-bold text-gray-700 uppercase tracking-wider' htmlFor='repeatPassword'>
+                Confirm Password
+              </label>
+              <div className='relative group'>
+                <LuLock size={20} className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' />
+                <input
+                  id='repeatPassword'
+                  type='password'
+                  placeholder='Repeat your password'
+                  className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all'
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={onSubmit}
+              disabled={isLoading}
+              className='w-full bg-[#FF8D1D] hover:bg-[#ff9d3d] disabled:bg-gray-300 text-black font-extrabold py-4 rounded-xl shadow-lg shadow-[#FF8D1D]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4'
+            >
+              {isLoading ? (
+                <>
+                  <LuLoader className='animate-spin' /> Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </button>
+
+            <div className='text-center pt-2'>
+              <p className='text-gray-600 text-sm'>
+                Already have an account?{' '}
+                <Link href='/login/company'>
+                  <span className='font-bold text-black hover:underline underline-offset-4 cursor-pointer'>
+                    Login here
+                  </span>
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className='py-8 px-8 text-center md:text-left mt-auto'>
+          <p className='text-[10px] text-gray-400 uppercase tracking-[0.2em]'>
+            Secured by Ethereum Smart Contracts
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

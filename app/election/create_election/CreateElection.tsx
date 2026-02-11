@@ -1,7 +1,14 @@
 'use client';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { LuArrowLeft } from 'react-icons/lu';
+import {
+  LuArrowLeft,
+  LuPenTool,
+  LuFileText,
+  LuCalendarClock,
+  LuRocket,
+  LuLoader
+} from 'react-icons/lu';
 import { toast } from 'react-toastify';
 import { setElection } from '@/services/election';
 import { useRouter } from 'next/navigation';
@@ -103,100 +110,146 @@ export default function CreateElection() {
       router.push(`/dashboard`);
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
       toast.error('Terjadi kesalahan saat membuat election.');
     }
   };
 
   return (
-    <>
+    <div className='flex w-full h-screen bg-white font-sans overflow-hidden text-[#222222]'>
+
       {isLoading && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white p-5 rounded-md shadow-lg'>
-            <p className='text-lg font-semibold'>Creating Election...</p>
-          </div>
+        <div className='fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[100]'>
+          <LuLoader className='animate-spin text-[#FF8D1D] mb-4' size={60} />
+          <h3 className='text-2xl font-black tracking-tight'>DEPLOYING ELECTION</h3>
+          <p className='text-gray-500 mt-2'>Please confirm the transaction in your wallet...</p>
         </div>
       )}
-      <div className='flex w-full h-screen'>
-        <div className='flex-[4] hidden md:block overflow-hidden'>
-          <img
-            src='/img/login-banner.png'
-            alt='banner'
-            className='object-cover h-screen object-right'
-          />
+
+      <div className='hidden md:flex flex-[3] relative bg-black'>
+        <img
+          src='/img/login-banner.png'
+          alt='banner'
+          className='absolute inset-0 w-full h-full object-cover opacity-70'
+        />
+        <div className='relative z-10 flex flex-col justify-end p-16 text-white bg-gradient-to-t from-black/90 to-transparent w-full'>
+          <h2 className='text-4xl font-bold mb-4'>Launch Your Democracy</h2>
+          <p className='text-gray-300 max-w-md leading-relaxed'>
+            Set up a transparent, secure, and immutable election event in minutes. Powered by Ethereum smart contracts.
+          </p>
         </div>
-        <div className='flex-[2] bg-white'>
-          <div className='mb-5 border-b py-5 px-10'>
-            <Link href='/'>
-              <p className='flex items-center text-xl'>
-                <span className='mr-1'>
-                  <LuArrowLeft />
-                </span>
-                Back
-              </p>
-            </Link>
+      </div>
+
+      <div className='flex-[2] flex flex-col h-full bg-white overflow-y-auto'>
+        <div className='py-6 px-8 md:px-12 shrink-0'>
+          <Link href='/'>
+            <button className='group flex items-center text-sm font-semibold text-gray-500 hover:text-black transition-colors'>
+              <LuArrowLeft className='mr-2 group-hover:-translate-x-1 transition-transform' />
+              Back
+            </button>
+          </Link>
+        </div>
+
+        <div className='flex-1 flex flex-col justify-center px-8 md:px-20 py-10'>
+          <div className='mb-8'>
+            <div className='flex items-center gap-3 mb-2'>
+              <h1 className='text-4xl md:text-5xl font-black tracking-tight text-gray-900'>
+                Create<br />Election
+              </h1>
+              <img src='/img/vector2.png' alt='' className='h-12 w-auto animate-pulse' />
+            </div>
+            <p className='text-gray-500 font-medium'>Define the details of your voting event.</p>
           </div>
 
-          <div className='p-10 flex flex-col'>
-            <div className='flex items-center mb-10'>
-              <h1 className='text-5xl mr-3'>
-                Create <br /> Election
-              </h1>
-              <img src='/img/vector2.png' alt='' className='h-[82px]' />
+          <div className='space-y-6'>
+
+            <div className='space-y-2'>
+              <label className='text-xs font-bold text-gray-500 uppercase tracking-wider' htmlFor='electionName'>
+                Election Title
+              </label>
+              <div className='relative group'>
+                <LuPenTool className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' size={20} />
+                <input
+                  id='electionName'
+                  type='text'
+                  placeholder='e.g. Student Council Election 2024'
+                  className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all font-bold text-gray-800 placeholder:font-normal'
+                  value={electionName}
+                  onChange={(e) => setElectionName(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className='w-full h-fit bg-[#D9D9D9] p-3 rounded-lg'>
-              <div className='w-full h-full bg-white rounded-sm px-5 py-10 flex flex-col'>
-                <label htmlFor='electionName'>Election Name</label>
-                <input
-                  type='text'
-                  placeholder='Election name'
-                  className='border border-black rounded-sm p-2 mb-5 font-sans'
-                  value={electionName}
-                  onChange={(event) => setElectionName(event.target.value)}
-                />
-
-                <label htmlFor='electionDescription'>
-                  Election Description
-                </label>
+            <div className='space-y-2'>
+              <label className='text-xs font-bold text-gray-500 uppercase tracking-wider' htmlFor='electionDesc'>
+                Description
+              </label>
+              <div className='relative group'>
+                <LuFileText className='absolute left-4 top-4 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' size={20} />
                 <textarea
-                  placeholder='Election description'
-                  className='border border-black rounded-sm p-2 mb-5 font-sans'
+                  id='electionDesc'
+                  placeholder='Describe the purpose of this election...'
+                  className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all min-h-[120px] resize-none'
                   value={electionDesc}
-                  onChange={(event) => setElectionDesc(event.target.value)}
-                  rows={4}
-                  cols={50}
+                  onChange={(e) => setElectionDesc(e.target.value)}
                 />
+              </div>
+            </div>
 
-                <label>Start Time</label>
-                <input
-                  type='datetime-local'
-                  className='border p-2 mb-3 font-sans'
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <label className='text-xs font-bold text-gray-500 uppercase tracking-wider'>Start Time</label>
+                <div className='relative group'>
+                  <LuCalendarClock className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' size={20} />
+                  <input
+                    type='datetime-local'
+                    className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all text-sm font-medium text-gray-600'
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+              </div>
 
-                <label>End Time</label>
-                <input
-                  type='datetime-local'
-                  className='border p-2 mb-5 font-sans'
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
-
-                <div className=''>
-                  <button
-                    type='button'
-                    onClick={onSubmit}
-                    className='bg-[#FF8D1D] w-full p-2 border border-black rounded-sm hover:bg-[#FF9E3D] transition'
-                  >
-                    Create election
-                  </button>
+              <div className='space-y-2'>
+                <label className='text-xs font-bold text-gray-500 uppercase tracking-wider'>End Time</label>
+                <div className='relative group'>
+                  <LuCalendarClock className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF8D1D] transition-colors' size={20} />
+                  <input
+                    type='datetime-local'
+                    className='w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8D1D]/20 focus:border-[#FF8D1D] outline-none transition-all text-sm font-medium text-gray-600'
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
                 </div>
               </div>
             </div>
+
+            <div className='pt-4'>
+              <button
+                type='button'
+                onClick={onSubmit}
+                disabled={isLoading}
+                className='w-full bg-[#FF8D1D] hover:bg-[#ff9d3d] disabled:bg-gray-300 disabled:cursor-not-allowed text-black font-extrabold py-4 rounded-xl shadow-lg shadow-[#FF8D1D]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3'
+              >
+                {isLoading ? (
+                  'Processing...'
+                ) : (
+                  <>
+                    <LuRocket size={20} /> Deploy Election Contract
+                  </>
+                )}
+              </button>
+            </div>
+
           </div>
         </div>
+
+        <div className='py-8 px-8 text-center md:text-left'>
+          <p className='text-[10px] text-gray-400 uppercase tracking-[0.2em]'>
+            Secured by Ethereum Smart Contracts
+          </p>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
