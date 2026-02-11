@@ -47,9 +47,11 @@ export default function Voter() {
   return (
     <div className='flex w-full h-screen bg-white font-sans overflow-hidden text-[#222222]'>
       <div className='hidden md:flex flex-[3] relative bg-[#FF8D1D]'>
-        <img
+        <Image
           src='/img/login-banner.png'
           alt='banner'
+          width={1000}
+          height={1000}
           className='absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-60'
         />
         <div className='relative z-10 flex flex-col justify-center p-20 text-white'>

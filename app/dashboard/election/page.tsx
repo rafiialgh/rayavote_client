@@ -350,7 +350,7 @@ export default function Election() {
                             <div className="bg-white/60 rounded-xl p-4 text-left">
                                 <p className="text-xs text-gray-500 uppercase font-bold mb-1">Winning Vision</p>
                                 <p className="text-sm text-gray-700 line-clamp-3 italic">
-                                    "{candidate.description}"
+                                    {candidate.description}
                                 </p>
                             </div>
                         </div>

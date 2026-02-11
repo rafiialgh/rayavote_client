@@ -2,6 +2,7 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import { deleteCandidate } from '@/services/candidate';
 import { LuTrash2, LuPencil } from 'react-icons/lu';
+import Image from 'next/image';
 
 function TableRow(props: any) {
   const {
@@ -38,9 +39,11 @@ function TableRow(props: any) {
     <tr className="group hover:bg-slate-50 transition-colors duration-200">
       <td className='p-6 align-middle'>
         <div className='w-14 h-14 rounded-xl overflow-hidden border border-gray-200 shadow-sm'>
-            <img 
+            <Image 
                 src={`${process.env.NEXT_PUBLIC_IMG}/${imgHash}`} 
                 alt={name} 
+                width={56}
+                height={56}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + name + '&background=random';

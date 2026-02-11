@@ -49,9 +49,11 @@ export default function Home() {
               <div className="absolute -inset-4 bg-[#FF8D1D]/5 rounded-[40px] -z-10 rotate-3"></div>
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className={`aspect-square rounded-3xl bg-gray-100 overflow-hidden border-4 border-white shadow-xl group ${i % 2 === 0 ? 'mt-8' : ''}`}>
-                   <img 
+                   <Image 
                     src={`/img/profile${i}.png`} 
                     alt="Candidate" 
+                    width={1000}
+                    height={1000}
                     className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500 scale-110 group-hover:scale-100"
                    />
                 </div>
@@ -96,7 +98,7 @@ export default function Home() {
              <div className="md:w-1/2">
                 <div className="relative p-8">
                   <div className="absolute inset-0 bg-[#FF8D1D] rounded-[2rem] rotate-6 opacity-10"></div>
-                  <img src="/img/voter.png" alt="Registration UI" className="relative rounded-2xl shadow-2xl hover:-translate-y-2 transition-transform duration-500" />
+                  <Image src="/img/voter.png" alt="Registration UI" width={1000} height={1000} className="relative rounded-2xl shadow-2xl hover:-translate-y-2 transition-transform duration-500" />
                 </div>
              </div>
            </div>

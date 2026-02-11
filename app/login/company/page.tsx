@@ -81,9 +81,11 @@ export default function Company() {
   return (
     <div className='flex w-full h-screen bg-white font-sans overflow-hidden'>
       <div className='hidden md:flex flex-[3] relative bg-black'>
-        <img
+        <Image
           src='/img/login-banner.png'
           alt='banner'
+          width={1000}
+          height={1000}
           className='absolute inset-0 w-full h-full object-cover opacity-80'
         />
         <div className='relative z-10 flex flex-col justify-end p-16 text-white bg-gradient-to-t from-black/80 to-transparent w-full'>
@@ -110,7 +112,7 @@ export default function Company() {
                <h1 className='text-4xl md:text-5xl font-black tracking-tight text-gray-900'>
                 Organization<br />Login
               </h1>
-              <img src='/img/vector2.png' alt='' className='h-12 w-auto animate-pulse' />
+              <Image src='/img/vector2.png' alt='' width={1000} height={1000} className='h-12 w-auto animate-pulse' />
             </div>
             <p className='text-gray-500 font-medium'>Welcome back! Please enter your details.</p>
           </div>
