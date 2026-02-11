@@ -102,7 +102,21 @@ export default function Voting() {
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const address = Cookies.get('address');
+
+        if (!address) {
+          toast.error('Address pemilihan tidak ditemukan.');
+          setIsLoading(false);
+          return;
+        }
+
         const Election = getElectionContract(address);
+
+        if (!Election) {
+          toast.error('Gagal menghubungkan ke Smart Contract.');
+          setIsLoading(false);
+          return;
+        }
+
         const email = Cookies.get('emailVoter');
 
         const tx = await Election.vote(candidateIndex, email);
