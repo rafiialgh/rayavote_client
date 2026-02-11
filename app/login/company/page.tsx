@@ -173,7 +173,7 @@ export default function Company() {
 
             <div className='text-center pt-4'>
               <p className='text-gray-600 text-sm'>
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href='/register/company'>
                   <span className='font-bold text-black hover:underline underline-offset-4 cursor-pointer'>
                     Register Organization
